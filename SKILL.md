@@ -58,14 +58,23 @@ End with: totals · confirmed bugs · needs business confirmation · evidence pa
 - Stay inside the campaign window when testing.
 - Don't hard-code plugin specifics — re-discover in Step 0 every run.
 - Use Local Lightning's bundled `mysql` binary; system PATH usually has no `mysql`.
-- Restore original plugin state after the run (free active, Pro inactive).
+- Restore original plugin state after the run (free active, Pro inactive). Restore any Pro folders moved for `is_installed` testing.
+- Check `display_if` for `is_installed` vs `is_plugin_active`. If `is_installed` is used, the Pro folder's mere presence hides the notice — move it out to test properly, and report as bug.
+- Body font-size: WP's `.notice p` defaults to 13px. If Figma says 14px and actual is 13px, that's a bug in the plugin (missing inline style).
+- If Figma uses `text-transform: capitalize`, check whether the actual CSS applies the transform or the text is hardcoded differently. Note the implementation approach in the checklist.
+- Plugin activate/deactivate via Playwright can silently fail after rapid state changes. Fallback: update `active_plugins` option directly via mysql.
+- For priority tests, move Pro folders of all plugins using `is_installed` so their notices can render, otherwise the test is meaningless.
+- Use the skill's own `scripts/inspect-notice.js` and `scripts/check-pro-hides.js` with a per-plugin config JSON at `/tmp/notice-config.json`. Do NOT write inline `inspect-<plugin>.js` files inside unrelated projects (like `BetterLinks-E2E-Test/`) — duplicates skill logic and pollutes other projects.
+- Activating Pro plugins by directly writing `wp_options.active_plugins` can break DI-container-based plugins (confirmed: BetterDocs Pro fatals on init). Always toggle Pro through the plugins.php UI so WP's activation hooks fire.
+- Slack output rule: when producing the final checklist for Slack paste, strip backticks, em-dashes, and arrow chars from cell contents. Plain ASCII per cell. Keep the table under ~45 rows. This lets Slack's paste detector auto-convert to a table attachment.
 
 ## References
 
 - [references/procedure.md](references/procedure.md) — full 6-step procedure
-- [references/wp-notice-library.md](references/wp-notice-library.md) — `priyomukul/wp-notice` internals (used by BetterLinks, BetterDocs, etc.)
+- [references/wp-notice-library.md](references/wp-notice-library.md) — `priyomukul/wp-notice` internals, `is_installed` bug, `screens` restriction
 - [references/login-quirks.md](references/login-quirks.md) — WP login automation gotchas
-- [references/worked-example-betterlinks.md](references/worked-example-betterlinks.md) — full BetterLinks Spring 2026 walkthrough
+- [references/worked-example-betterlinks.md](references/worked-example-betterlinks.md) — BetterLinks Spring 2026 walkthrough
+- [references/worked-example-notificationx.md](references/worked-example-notificationx.md) — NotificationX Spring 2026 walkthrough (surfaced `is_installed` bug)
 
 ## Assets
 

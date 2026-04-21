@@ -50,6 +50,7 @@ Claude will ask for the inputs listed in [SKILL.md](SKILL.md) before running.
 | `references/wp-notice-library.md` | Internals of `priyomukul/wp-notice` |
 | `references/login-quirks.md` | WP login automation gotchas |
 | `references/worked-example-betterlinks.md` | First real run (BetterLinks Spring 2026) |
+| `references/worked-example-notificationx.md` | NotificationX Spring 2026 — surfaced the `is_installed` bug pattern |
 | `assets/checklist-template.md` | Output checklist skeleton |
 | `assets/slack-message-template.md` | Short Slack summary template |
 
@@ -66,9 +67,9 @@ Claude will ask for the inputs listed in [SKILL.md](SKILL.md) before running.
   "proPluginSlug": "betterlinks-pro",
   "dismissButtonTextRegex": "^(Maybe Later|Dismiss)$",
   "pages": [
-    { "name": "dashboard",  "url": "/wp-admin/index.php",                mustShow: true },
-    { "name": "plugins",    "url": "/wp-admin/plugins.php",              mustShow: true },
-    { "name": "plugin-home","url": "/wp-admin/admin.php?page=<slug>",   mustShow: true }
+    { "name": "dashboard",   "url": "/wp-admin/index.php",              "mustShow": true },
+    { "name": "plugins",     "url": "/wp-admin/plugins.php",            "mustShow": true },
+    { "name": "plugin-home", "url": "/wp-admin/admin.php?page=<slug>",  "mustShow": true }
   ]
 }
 ```

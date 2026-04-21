@@ -49,3 +49,39 @@ self::$cache_bank->clear_notices_in_(
 ## Beware of dead code
 
 Some plugins (e.g. BetterLinks) have a legacy `dismiss_black_friday_notice` AJAX handler that calls `update_site_option(...)` with the same key the library uses for scope=site. It's guarded by a different nonce and never fires in the live flow — don't be misled into thinking dismiss is site-wide when it's actually user-meta.
+
+## `is_installed` vs `is_plugin_active` — a common Pro-hide bug
+
+The library's helper `is_installed($plugin)` (in `Utils/Helper.php`) returns the plugin data **array** whenever the Pro folder exists in `wp-content/plugins/`, regardless of whether it's activated:
+
+```php
+public function is_installed( $plugin ) {
+    $plugins = get_plugins();  // all installed plugins, active or not
+    return isset( $plugins[ $plugin ] ) ? $plugins[ $plugin ] : false;
+}
+```
+
+So these two `display_if` expressions behave very differently:
+
+| Expression | Hides notice when Pro is… |
+|---|---|
+| `! is_plugin_active('plugin-pro/plugin-pro.php')` | …**active** only (correct) |
+| `! is_array( $notices->is_installed('plugin-pro/plugin-pro.php') )` | …merely **installed** (bug — hides even when deactivated) |
+
+**Impact on testing:** if the plugin uses the `is_installed` form, the Pro folder's mere presence will suppress the notice. Your Phase 1 run (Pro deactivated via UI) will show `present: false` and you'll wrongly conclude the notice never shows.
+
+**Workaround in the skill:** when `display_if` uses `is_installed`, move the Pro folder out of `wp-content/plugins/` temporarily so WordPress can't see it:
+
+```bash
+mv "/path/to/wp-content/plugins/plugin-pro" /tmp/plugin-pro-backup
+# run Playwright tests
+mv /tmp/plugin-pro-backup "/path/to/wp-content/plugins/plugin-pro"
+```
+
+Report the `is_installed` form as a **confirmed bug** in the checklist — correct behaviour is to check activation, not installation.
+
+## `screens` restriction
+
+A notice registration can set `'screens' => ['dashboard']` to limit rendering to specific admin screens. `dashboard` is WordPress's screen ID for `/wp-admin/index.php` — NOT the plugin's own admin page. Plugin pages have IDs like `toplevel_page_<slug>` or `<slug>_page_<subpage>`.
+
+When business spec says "show on <plugin> dashboard only", that usually means the plugin's toplevel admin page, which is the opposite of `screens => ['dashboard']`. Flag this as a divergence.
